@@ -1,8 +1,9 @@
 // MINE
+#include "Grabber.h"
+
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "Grabber.h"
 
 #define OUT
 
@@ -25,23 +26,47 @@ void UGrabber::BeginPlay()
 	SetupInputComponent();
 }
 
-
-
 // Called every frame
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	GetFirstPhysicsBodyInReach();
+
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
+
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+
+	if(PhysicsHandle->GrabbedComponent){
+		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+	}
 }
 
 void UGrabber::Grab(){
 	UE_LOG(LogTemp, Warning, TEXT("Test grab function"));
 
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
 
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+
+	FHitResult HitResult = GetFirstPhysicsBodyInReach();
+
+	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
+	if(HitResult.GetActor()){
+		PhysicsHandle->GrabComponentAtLocation(
+			ComponentToGrab,
+			NAME_None,
+			LineTraceEnd
+		);
+	}
 }
 
 void UGrabber::Release(){
 	UE_LOG(LogTemp, Warning, TEXT("Test Release function"));
+
+	PhysicsHandle->ReleaseComponent();
 }
 
 void UGrabber::FindPhysicsHandle(){
@@ -88,5 +113,7 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach(){
 	if(ActorHit){
 		UE_LOG(LogTemp, Warning, TEXT("%s has been hit"), *ActorHit->GetName());
 	}
+
+	return Hit;
 	
 }
