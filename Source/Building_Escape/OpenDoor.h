@@ -28,6 +28,8 @@ public:
 
 	virtual void OpenDoor(float DeltaTime, float DirectionYaw, float DoorSpeed);
 
+	float TotalMassOfActors() const;
+
 	
 
 		
@@ -57,5 +59,8 @@ private:
 	float CloseSpeed = 2.f;
 
 	float DoorSpeed = 0.f;
+
+	UPROPERTY(EditAnywhere)
+	float MassToOpenDoors = 60.f;
 
 };
