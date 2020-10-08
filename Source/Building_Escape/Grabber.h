@@ -37,5 +37,7 @@ private:
 	void SetupInputComponent();
 	// return first actor in reach with physics body
 	FHitResult GetFirstPhysicsBodyInReach();
+	FVector GetLineTraceEnd() const;
+	FVector GetPlayersWorldPos() const;
 
 };
