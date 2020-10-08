@@ -13,7 +13,6 @@ UGrabber::UGrabber()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
 }
 
 
@@ -22,37 +21,56 @@ void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-
-	UE_LOG(LogTemp, Warning, TEXT("Hey! Grabber here"));
-	
+	FindPhysicsHandle();
+	SetupInputComponent();
 }
+
 
 
 // Called every frame
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	GetFirstPhysicsBodyInReach();
+}
 
+void UGrabber::Grab(){
+	UE_LOG(LogTemp, Warning, TEXT("Test grab function"));
+
+
+}
+
+void UGrabber::Release(){
+	UE_LOG(LogTemp, Warning, TEXT("Test Release function"));
+}
+
+void UGrabber::FindPhysicsHandle(){
+	//Check PhysicsHandleComponent
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	if(PhysicsHandle){
+		
+	}else{
+		UE_LOG(LogTemp, Error, TEXT("%s has no PhysicsHandle component"), *GetOwner()->GetName());
+	}
+}
+
+void UGrabber::SetupInputComponent(){
+		//check input component
+	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	if(InputComponent){
+		UE_LOG(LogTemp, Warning, TEXT("%s has InputComponent component"), *GetOwner()->GetName());
+		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
+		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+
+	}
+}
+
+FHitResult UGrabber::GetFirstPhysicsBodyInReach(){
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
 
-
-	//UE_LOG(LogTemp, Warning, TEXT("Location is %s and rotation is %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString());
-
 	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-
-	DrawDebugLine(
-		GetWorld(),
-		PlayerViewPointLocation,
-		LineTraceEnd,
-		FColor(75,0,130),
-		false,
-		0.f,
-		0,
-		5
-	);
 
 	FHitResult Hit;
 
@@ -71,6 +89,4 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		UE_LOG(LogTemp, Warning, TEXT("%s has been hit"), *ActorHit->GetName());
 	}
 	
-
 }
-
