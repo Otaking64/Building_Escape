@@ -2,6 +2,7 @@
 
 
 #include "OpenDoor.h"
+#include "Components/AudioComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -28,15 +29,12 @@ void UOpenDoor::BeginPlay()
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
 	CurrentYaw = InitialYaw;
 	TargetYaw += InitialYaw;
-	if(!PressurPlate){
-		UE_LOG(LogTemp, Error, TEXT("%s has the opendoor componen but no pressureplate is set"), *GetOwner()->GetName());
 
-	}
+	FindPressurePlate();
+	
 
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
-
-
-	
+	FindAudioComponent();	
 }
 
 
@@ -49,11 +47,23 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 		DoorSpeed = DeltaTime*OpenSpeed;
 		OpenDoor(DeltaTime, TargetYaw, DoorSpeed);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
-	}else{
-		if(GetWorld()->GetTimeSeconds() - DoorLastOpened > DoorCloseDelay){
-			DoorSpeed = DeltaTime*CloseSpeed;
-			OpenDoor(DeltaTime, InitialYaw, DoorSpeed);
-		}	
+	
+		if(!AudioComponent) {return;}
+		if(!OpenDoorSound){
+			AudioComponent->Play();
+			OpenDoorSound = true;
+			CloseDoorSound = false;
+		}
+	}else if(GetWorld()->GetTimeSeconds() - DoorLastOpened > DoorCloseDelay){
+		DoorSpeed = DeltaTime*CloseSpeed;
+		OpenDoor(DeltaTime, InitialYaw, DoorSpeed);
+
+		if(!AudioComponent) {return;}
+		if(!CloseDoorSound){
+			AudioComponent->Play();
+			OpenDoorSound = false;
+			CloseDoorSound = true;
+		}
 	}
 }
 
@@ -63,6 +73,7 @@ void UOpenDoor::OpenDoor(float DeltaTime, float TargetYaw, float DoorSpeed){
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+	
 }
 
 float UOpenDoor::TotalMassOfActors() const{
@@ -79,4 +90,21 @@ float UOpenDoor::TotalMassOfActors() const{
 
 	return TotalMass;
 }
+
+void UOpenDoor::FindAudioComponent(){
+
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+
+	if(!AudioComponent){
+		UE_LOG(LogTemp, Error, TEXT("%s is missing audio component"), *GetOwner()->GetName());
+	}
+
+}
+void UOpenDoor::FindPressurePlate() const{
+	if(!PressurPlate){
+		UE_LOG(LogTemp, Error, TEXT("%s has the opendoor componen but no pressureplate is set"), *GetOwner()->GetName());
+
+	}
+}
+
 

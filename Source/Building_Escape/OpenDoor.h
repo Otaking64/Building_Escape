@@ -30,6 +30,13 @@ public:
 
 	float TotalMassOfActors() const;
 
+	void FindAudioComponent();
+
+	void FindPressurePlate() const;
+
+	bool OpenDoorSound = false;
+	bool CloseDoorSound = true;
+
 	
 
 		
@@ -62,5 +69,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float MassToOpenDoors = 60.f;
+
+	UPROPERTY(EditAnywhere)
+	UAudioComponent* AudioComponent = nullptr;
+
 
 };
